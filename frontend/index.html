@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self' https://script.google.com https://script.googleusercontent.com">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#1f4e79">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="施工手引き">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>施工手引き</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="bar">
+      <button class="ibtn back" id="back" type="button" data-act="back" aria-label="もどる" hidden>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="brand"><b id="title">施工手引き</b><small id="sub">型枠工事　この場合はこう施工する</small></div>
+      <span class="role" id="role" hidden>閲覧のみ</span>
+      <button class="ibtn" id="gear" type="button" data-act="settings" aria-label="設定">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+      </button>
+    </div>
+    <div class="searchrow" id="searchrow">
+      <input id="q" class="field" type="search" placeholder="項目や事例を検索（例：墨、セパ、端太）" autocomplete="off" aria-label="検索">
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="app"><div class="empty">読み込み中…</div></main>
+
+<div class="addbar" id="addbar" hidden>
+  <div class="wrap"><button class="btn primary" id="addbtn" type="button" data-act="add-ex">＋ この項目に例を追加</button></div>
+</div>
+
+<div class="sheet" id="sheet" hidden></div>
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="写真の拡大">
+  <img id="lbimg" alt="">
+  <button type="button" class="lbp" data-act="lb-prev" aria-label="前の写真" hidden>‹</button>
+  <button type="button" class="lbn" data-act="lb-next" aria-label="次の写真" hidden>›</button>
+  <button type="button" class="lbc" data-act="lb-close">閉じる</button>
+</div>
+<div class="toast" id="toast" hidden role="status"></div>
+<div class="sr" id="live" aria-live="polite"></div>
+<script src="config.js"></script>
+<script src="js/01-util.js"></script>
+<script src="js/02-store.js"></script>
+<script src="js/03-api.js"></script>
+<script src="js/04-media.js"></script>
+<script src="js/05-state.js"></script>
+<script src="js/06-views.js"></script>
+<script src="js/07-sheet.js"></script>
+<script src="js/08-actions.js"></script>
+<script src="js/09-main.js"></script>
+</body>
+</html>
