@@ -1,0 +1,91 @@
+# 引き継ぎメモ(次に作業する人・Claude Code 向け)
+最終更新 2026-10-15 / 版 3.1.5。作業前に **CLAUDE.md → SPEC.md → このメモ → docs/DEPLOY.md** の順に読む。
+このリポジトリは**公開**。GoogleのURL・ID・メールアドレス・鍵は書かない(下の「リポジトリに無いもの」参照)。
+
+## 1. 何のアプリか
+RCCREATE(型枠工事)の社内アプリ「施工手引き」。グループ → 項目 → 事例(○良い例/×悪い例の写真・動画と理由)。社外秘。承認された端末だけが見られる。
+利用者は約23名(インドネシア人を含む)。作った人は開発者ではない(代表の細野)。**やさしい日本語**で、手順は短く具体的に説明する。
+管理者 = 細野。区分は 閲覧 / 投稿 / 管理。
+
+## 2. 構成
+| 部品 | 場所 | 反映のしかた |
+|---|---|---|
+| 画面(PWA) | `frontend/` → https://tebiki.rccreate.net | main に push → GitHub Actions が `frontend/` を公開(約30秒) |
+| サーバー | Google Apps Script(スプレッドシートに紐づく)。`backend/` | **手で貼り直し → 新バージョンでデプロイ**(自動ではない) |
+| データ | スプレッドシート(利用者/グループ/項目/事例/設定)+ ドライブ(写真・動画) | — |
+| DNS | GoDaddy の CNAME `tebiki` → `rccreate-dev.github.io` | 更新切れに注意 |
+- GitHub: アカウント `rccreate-dev`、リポジトリ `sekou-tebiki`(公開)。
+- API は Apps Script ウェブアプリ1本(POST、`text/plain` のJSON)。URLは `frontend/config.js` の `API_URL`(公開されて構わない)。
+- 外部CDN・外部フォント・外部ライブラリ禁止、ビルド工程なし、オフライン閲覧必須(CLAUDE.md)。
+
+## 3. 作業の手順(忘れやすい所)
+### 画面を直したとき
+1. 版番号を**3か所同じに**上げる: `frontend/sw.js` の `SW_VERSION`、`frontend/js/01-util.js` の `VERSION`、`frontend/config.js` の `APP_VERSION`。
+   `sw.js` の中身が変わらないと端末は更新に気づかない。
+2. 新しいスクリプトを足したら `frontend/index.html` の `<script>` と `sw.js` の `SHELL` の両方に足す。
+3. テスト → push → `gh run list -L1` で公開完了を確認。
+4. 端末側: アプリを閉じて開く(1〜2回)。設定の画面の版番号で確認。
+   - 過去の不具合: SW が更新時に HTTP キャッシュ(GitHub Pages は10分)の古いファイルを取り込んで更新されなかった → `cache:'reload'` で取り直すように直した(3.1.3)。古い版(〜3.0)が入っている端末は自力で直らないことがあり、その場合は「設定 → 端末の保存を消して読み込み直す」か、アイコンを消して追加し直す(新しい端末として再申請になる)。
+### サーバー(backend/)を直したとき
+1. テスト(下記)を通す。
+2. Apps Script のエディタに貼り直す。**プロジェクトは1ファイル(コード.gs)**で、`backend/*.gs` を次の順につなげた内容: `Util, Schema, Repo, Auth, Media, Code, HandlersUser, HandlersExample, HandlersStructure, Setup`(`backend/harness/server.js` の LOAD_ORDER と同じ)。`appsscript.json` は別(マニフェスト)。
+   - 例: `cd backend && cat Util.gs Schema.gs Repo.gs Auth.gs Media.gs Code.gs HandlersUser.gs HandlersExample.gs HandlersStructure.gs Setup.gs > /tmp/コード.gs`
+3. 保存 →「デプロイ → デプロイを管理 → 鉛筆 → 新バージョン → デプロイ」。**URLは変わらない**。「新しいデプロイ」にするとURLが変わってしまうので注意。
+4. 新しい権限(スコープ)を増やすと全員に再承認が必要になる。増やさない設計を維持(例: `Session.getEffectiveUser` は使わず `notifyEmail` 設定を使う)。
+- 現在のマニフェストのスコープ: spreadsheets / drive / script.scriptapp / script.send_mail。
+
+### テスト(完了前に必ず)
+```
+node --check frontend/js/*.js frontend/sw.js   # 各ファイル
+node --test backend/harness/test                # 98件
+NODE_PATH=$(npm root -g) node tests/e2e.js      # ブラウザ(Playwright/Chromium)ALL PASS
+```
+- `backend/harness` は Apps Script を Node で再現した試験用サーバー。本番の Google ではない。
+
+## 4. 設定・運用の知識
+- 設定シートのキー: `notifyEmail`(利用申請メールの送り先。空だと送らない)、`appBaseUrl`(メール承認リンク用のウェブアプリURL)、`mailEnabled`、`mediaRootFolderId`。
+- Script Properties: `PEPPER`(端末鍵のハッシュ用)、`SECRET`(メール署名用)、`MEDIA_FOLDER_ID`。**PEPPER を変えると全員の登録が無効になる。絶対に変えない・Gitに入れない。**
+- 利用者シートの列: ID, 申請日時, 氏名, 会社名, 区分, 状態, 決定日時, 鍵ハッシュ, 最終利用。状態 = 申請中/承認/却下。
+- 運用関数(エディタの関数選択 → 実行): `setupSecrets` `setupSheets` `setupTriggers`(毎日3時 `dailyMaintenance`) `seedStructure` `makeAdmin('氏名')`。
+- 管理者が使えなくなったとき: 利用者シートで該当行の「区分」を `管理`、「状態」を `承認` にする(または `makeAdmin`)。
+- 参加の流れ: ホーム画面に追加 → 開いて氏名・会社を申請 → 管理者がメールのリンクまたはアプリ内で承認。**Safari とホーム画面アプリは別の端末として扱われる**ので、必ず先にホーム画面に追加してから申請してもらう。
+- 同じ人が2回登録された場合: 新しい方を承認、古い方を却下。
+- 写真: 本体 2.8MB 以下・サムネ 220KB 以下(長辺2400px/960px)。動画: 1280px、約4.5Mbps、**20MB以下を2.5MiBずつ最大8片**で送る(サーバーは1片3MB・8片まで)。この3つの数字(`01-util.js` の `MAX_FILE`/`PART_BYTES`、`Schema.gs`)は食い違わせない。過去に不一致で16MB超の動画が必ず失敗した。
+- 写真の書込み(ペン・矢印・○□囲み・ぼかし・スタンプ): `frontend/js/07b-annotate.js`。書込みは写真に焼き込み、原本は編集中の端末メモリにだけ持つ。作り直すたびに新しい mediaId を振る(同じIDだとサーバーは古い写真のまま「成功」を返すため)。
+- 本番のスプレッドシートは書き換えると実データに影響する。試験は harness / Playwright で行い、本番で試すときはテスト用の利用者名を付けて後で却下・削除する。
+
+## 5. 決定済みの方針(覆さない)
+- 閲覧専用と投稿できるメンバーは分ける。管理者は細野。
+- 認可はサーバー側で検査(画面の非表示に頼らない)。書き込みAPIは冪等(クライアント発行ID)。
+- 端末の鍵はハッシュ保存。社外秘データ(写真・動画・実データ・秘密)はGitに入れない。
+- 画面の文言は日本語(やさしい日本語)。変数名・関数名は英語。
+
+## 6. 未対応・やり残し(優先順)
+### 独立レビュー(2026-10-14)で出て、まだ直していないもの — すべて backend(貼り直しが必要)
+1. **M2 申請の連打**: `apply` は未認証で誰でも呼べ、行が増える・メール枠(6時間20通)を使い切れる。→ 申請中の件数に上限(例50)か CacheService で回数制限。`HandlersUser.gs`、`Code.gs`。
+2. **M5 承認メールのリンク**: `decide` と `commit` が同じ署名で、リンクを書き換えると確認ページを飛ばして承認できる。署名に期限がない。→ 署名を `HMAC(action|d|id|期限)` にして分ける。`HandlersUser.gs` 付近。
+3. **L2 追加の再送で重複**: グループ・項目の追加が冪等でない(`HandlersStructure.gs`)。削除の再送は NOT_FOUND になる。
+4. **L3 英語の項目名が画面に出る**: `VALIDATION_FAILED` のサーバーメッセージをそのまま表示している。クライアントで定型の日本語にする。
+5. **L4** 24時間以上シートを開いたままだと、アップロード済みファイルが日次掃除で消えて保存に失敗する。media の検証エラーのとき `m.done` を捨てて再送する。
+6. **L7** `.mov` を `video/mp4` として送っている。**L8** ぼかしが小さい顔には弱い(ブロックを大きく/べた塗りに)。**L9** 登録者の端末ID(`by`)が全員に見える(仕様)。
+### 実機で未確認
+- 16〜20MB・約60秒の動画(分割8片以内)で最後まで登録できるか。
+- 登録失敗 → 書込みを入れ直し → 再登録 で、新しい写真が保存されるか(H1 の修正確認)。
+### 今後の機能(段階2以降)
+- ふりがな、インドネシア語翻訳(自動翻訳は Claude 呼び出しの方式が未定)、グループ名の整理、QR付きの配布チラシ、インドネシア語マニュアル。
+- 古いアーティファクト版のサンプルデータは移行していない。
+- 運用文書: 社員向けマニュアルは Claude の Docs(閲覧専用/投稿メンバー別)にあるが、版の更新手順と書込み・スタンプの説明が最新か要確認。
+
+## 7. 事業・運用上のリスク(細野さんに伝えること)
+- 管理者端末が1台。予備の管理者を1人登録する。
+- スプレッドシート・ドライブにバックアップがない。月1回「コピーを作成」を勧める。
+- メール送信枠(Google の1日上限)。ドメイン更新(GoDaddy)。Apps Script の持ち主は細野の Google アカウント(退職・権限変更で止まらないように)。
+- GitHub Pages(無料)のためリポジトリは公開。コードは見られるが、データ・鍵は入っていない。API の URL を知っていても、承認済みの端末鍵がないとデータは取れない設計。
+- iPhone のホーム画面アプリでも、長期間開かないと登録が消えることがある(再申請)。
+
+## 8. リポジトリに無いもの(細野さんが持つ・Claudeに最初に渡す)
+次はリポジトリに書かない。引き継ぐときに会話の最初で渡す:
+- Apps Script プロジェクトのURL / スプレッドシートのURL(エディタとデータを開く入口)
+- 本番ウェブアプリのURL(`frontend/config.js` の `API_URL` と同じ)
+- ドライブの保存フォルダ「RCCREATE 施工手引き」
+- 管理者の Google アカウント、GoDaddy・GitHub のログイン(パスワードは Claude に渡さない。画面操作が要るときは細野さん本人が行う)
