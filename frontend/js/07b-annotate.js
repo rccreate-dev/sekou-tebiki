@@ -4,7 +4,7 @@
    書き込みは「画像の幅に対する割合」で持つので、画面の大きさや書き出しの大きさが変わっても同じ位置・同じ太さになる。 ===== */
 const Annotate = (() => {
   const COLORS = [['#e5221f', '赤'], ['#ffd60a', '黄'], ['#1f6fe5', '青'], ['#ffffff', '白']];
-  const STAMPS = ['○', '×', 'OK', 'NG', 'ココ', '注意', 'Good', 'Bad'];
+  const STAMPS = ['○', '×', 'OK', 'NG', 'ココ', '注意', 'Good', 'Bad', '☞', '☝', '⚠'];
   const TOOLS = [['pen', 'ペン'], ['arrow', '矢印'], ['ellipse', '○囲み'], ['rect', '□囲み'], ['blur', 'ぼかし'], ['stamp', 'スタンプ']];
   const WIDTHS = [['thin', '細', .004], ['thick', '太', .009]];
   const HINTS = {
