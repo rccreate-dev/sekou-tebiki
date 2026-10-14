@@ -10,7 +10,10 @@
 
 ## 2. アプリ側
 1. `frontend/config.js` の `API_URL` に、上の `…/exec` のURLを入れる。
-2. `frontend/sw.js` の `SW_VERSION` を上げる(変更を端末に反映させるため)。
+2. 画面側を直したら、**3か所の版番号を同じ数字に上げる**: `frontend/sw.js` の `SW_VERSION`、`frontend/js/01-util.js` の `VERSION`、`frontend/config.js` の `APP_VERSION`。`sw.js` が変わらないと端末は更新に気づかない。
+   - 端末への反映: アプリを閉じて開く(1〜2回)。設定の画面の版番号が上がっていれば反映済み。アプリを開いたままでも、画面に戻ったときと1時間ごとに確認する。
+   - 反映されないときの最後の手: 設定の「端末の保存を消して読み込み直す」。それでも駄目ならホーム画面のアイコンを消して追加し直す(新しい端末として再申請になる)。
+   - バックエンド(`backend/`)を直したときは、Apps Script に貼り直して「新バージョン」でデプロイし直す(URLは変わらない)。
 3. main に push すると GitHub Actions が `frontend/` だけを公開する(Settings → Pages → Source を「GitHub Actions」にしておく)。
 
 ## 3. 自社ドメイン tebiki.rccreate.net
@@ -18,6 +21,7 @@
 - GitHub の Settings → Pages → Custom domain に `tebiki.rccreate.net`、「Enforce HTTPS」にチェック。(`frontend/CNAME` は用意済み)
 
 ## 4. 最初の管理者
+0. 先にホーム画面に追加してから申請する(Safari と ホーム画面アプリは別の端末として扱われるため)。
 1. 自分のスマホで tebiki.rccreate.net を開き、氏名を入れて申請する。
 2. 届いたメールの「承認する」→ 確認ページのボタンで承認。
 3. Apps Script で `makeAdmin('細野')` を実行(または利用者シートの「区分」を `管理` に)。以後はアプリ内の「設定 → 利用者の管理」で承認・区分変更ができる。
@@ -25,6 +29,9 @@
 ## 5. 社員への案内
 - QRコードか URL を配る。開いて氏名を申請 → 管理者が承認。投稿してもらう人は区分を「投稿」にする。
 - iPhone: Safari の共有ボタン →「ホーム画面に追加」。Android: メニュー →「ホーム画面に追加」。追加しておくと登録が消えにくい。
+
+## 6. 申請メール
+- 送り先はスプレッドシートの「設定」シートの `notifyEmail`。空だと申請メールは送られない(アプリ内の承認は使える)。
 
 ## 未確認(本番で最初に確認)
 リクエストサイズ上限、doPost のリダイレクト、Drive の速度、iPhoneのホーム画面アプリでの登録保持。

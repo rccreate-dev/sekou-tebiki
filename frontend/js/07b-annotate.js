@@ -180,7 +180,7 @@ const Annotate = (() => {
         else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
       }
       function press(a) {
-        if (a === 'undo') { st.ops.pop(); st.armed = ''; redraw(); sync(); }
+        if (a === 'undo') { st.ops.pop(); st.armed = ''; st.dirty = true; redraw(); sync(); }
         else if (a === 'clear') {
           if (st.armed !== 'clear') { st.armed = 'clear'; sync(); return; }
           st.ops = []; st.armed = ''; st.dirty = true; redraw(); sync();
@@ -227,7 +227,7 @@ async function annotateMedia(i) {
     const r = await Annotate.render(orig, res.ops);
     if (SH() !== sh) return;
     if (m.turl) URL.revokeObjectURL(m.turl);
-    m.orig = orig; m.ops = res.ops; m.blob = r.full; m.thumb = r.thumb; m.turl = URL.createObjectURL(r.thumb); m.done = {};
+    m.orig = orig; m.ops = res.ops; m.blob = r.full; m.thumb = r.thumb; m.turl = URL.createObjectURL(r.thumb); m.done = {}; m.id = rid('m_');
     sh.dirty = true; drawPrev(); sheetMsg('');
   } catch (e) { sheetMsg('書き込みを写真に入れられませんでした。もう一度試してください。', true); }
   finally { sh.pending--; if (SH() === sh && !sh.pending && !sh.busy) $('#sh-save').disabled = false; }

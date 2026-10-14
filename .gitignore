@@ -1,3 +1,9 @@
 node_modules/
 .mock-state.json
 *.log
+*.jpg
+*.jpeg
+*.mp4
+*.mov
+.env
+.clasp.json

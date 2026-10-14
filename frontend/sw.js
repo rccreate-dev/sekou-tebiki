@@ -1,6 +1,6 @@
 'use strict';
 /* オフライン対応。画面の部品だけを端末に保存する。通信(API)・写真は扱わない */
-const SW_VERSION = 'tebiki-3.1.4';
+const SW_VERSION = 'tebiki-3.1.5';
 const SHELL = ['./', 'index.html', 'styles.css', 'config.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png',
   'js/01-util.js', 'js/02-store.js', 'js/03-api.js', 'js/04-media.js', 'js/05-state.js', 'js/06-views.js', 'js/07-sheet.js', 'js/07b-annotate.js', 'js/08-actions.js', 'js/09-main.js'];
 

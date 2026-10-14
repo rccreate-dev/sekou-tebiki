@@ -104,6 +104,7 @@ async function checkStatus(manual) {
   const st = r.data.status;
   if (st === 'approved') { await sync(true); render(); return; }
   S.gate = st === 'none' ? 'apply' : st === 'pending' ? 'pending' : 'rejected';
+  if (S.hasData) { S.hasData = false; S.groups = []; S.items = []; S.examples = []; S.users = null; Store.clearData(); }
   if (S.gate === 'pending' && !pendTimer) pendTimer = setInterval(() => { if (S.gate !== 'pending') { clearInterval(pendTimer); pendTimer = 0; } else if (document.visibilityState === 'visible') checkStatus(); }, 15000);
   scheduleRender();
 }

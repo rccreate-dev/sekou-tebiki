@@ -27,10 +27,14 @@ async function init() {
     const hadSw = !!navigator.serviceWorker.controller; let reloaded = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (!hadSw || reloaded) return;
-      const tryReload = () => { if (S.sheet || S.busy) { setTimeout(tryReload, 3000); return; } reloaded = true; location.reload(); };
+      const tryReload = () => { if (S.sheet || S.busy || holdRender() || S.diagBusy) { setTimeout(tryReload, 3000); return; } reloaded = true; location.reload(); };
       tryReload();
     });
-    navigator.serviceWorker.register('sw.js').then(r => { try { r.update(); } catch (e) {} }).catch(() => {});
+    navigator.serviceWorker.register('sw.js').then(r => {
+      const upd = () => { try { r.update(); } catch (e) {} };
+      upd(); setInterval(upd, 3600e3);
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') upd(); });
+    }).catch(() => {});
   }
   await Device.init();
   // 前回の内容が端末に残っていれば、通信を待たずにまず表示する(電波が弱い現場向け)
