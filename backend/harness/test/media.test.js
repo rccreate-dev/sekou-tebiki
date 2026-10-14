@@ -56,14 +56,14 @@ test('uploadPart 画像: 本体だけ先に出来ていた場合は、再送で�
   assert.deepEqual(h.driveNames(), [id + '.jpg', id + '_t.jpg'].sort());
 });
 
-test('uploadPart 画像: 制限(本体1.5MB・サムネ80KB・JPEG先頭・mime・total・bytes・thumb必須)', () => {
+test('uploadPart 画像: 制限(本体2.8MB・サムネ220KB・JPEG先頭・mime・total・bytes・thumb必須)', () => {
   const h = fresh();
   const p = h.mk('poster');
-  const MB15 = 1.5 * 1024 * 1024;
-  assert.equal(code(p.api('uploadPart', img(mid(), jpeg(MB15), jpeg(500)))), 'OK', '1.5MBちょうどは通る');
+  const MB15 = 2.8 * 1024 * 1024;
+  assert.equal(code(p.api('uploadPart', img(mid(), jpeg(MB15), jpeg(500)))), 'OK', '2.8MBちょうどは通る');
   assert.equal(code(p.api('uploadPart', img(mid(), jpeg(MB15 + 1), jpeg(500)))), 'TOO_LARGE');
-  assert.equal(code(p.api('uploadPart', img(mid(), jpeg(1000), jpeg(80 * 1024)))), 'OK', 'サムネ80KBちょうどは通る');
-  assert.equal(code(p.api('uploadPart', img(mid(), jpeg(1000), jpeg(80 * 1024 + 1)))), 'TOO_LARGE');
+  assert.equal(code(p.api('uploadPart', img(mid(), jpeg(1000), jpeg(220 * 1024)))), 'OK', 'サムネ220KBちょうどは通る');
+  assert.equal(code(p.api('uploadPart', img(mid(), jpeg(1000), jpeg(220 * 1024 + 1)))), 'TOO_LARGE');
   const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47]), crypto.randomBytes(100)]);
   const e1 = p.api('uploadPart', img(mid(), png, jpeg(500)));
   assert.equal(e1.error.code, 'VALIDATION_FAILED');

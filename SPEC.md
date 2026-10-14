@@ -119,7 +119,7 @@
 |---|---|---|
 | `uploadPart` ★ | `mediaId: str`(m_…), `kind:"image"|"video"`, `mime: str`, `index: int`, `total: int`, `data: b64`, `thumb: b64`(`index=0` のとき必須), `bytes: int`(この片の生バイト数) | `{stored:true}` |
 
-- 画像: `total=1`。本体JPEG(1.5MB以下)とサムネJPEG(80KB以下)。先頭バイトが `FF D8` であること。
+- 画像: `total=1`。本体JPEG(2.8MB以下)とサムネJPEG(220KB以下)。先頭バイトが `FF D8` であること。
 - 動画: `total` 1〜8、片は生バイト3MB以下(base64 4.2M字以下)。全体20MB以下。`index=0` にサムネ(JPEG)を付ける。`mime` は `video/mp4` か `video/webm` のみ。
 - 同じ `mediaId`+`index` の再送は、既存ファイルをゴミ箱に入れて作り直さず、**既にあれば成功を返す**(内容比較はしない)。
 - Driveに書くのはロックの外でよい(重いため)。ロックは不要。ただし認証と権限は毎回確認する。

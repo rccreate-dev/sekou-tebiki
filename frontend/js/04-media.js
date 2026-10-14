@@ -15,7 +15,7 @@ const Media = (() => {
     loading.set(k, p); return p;
   }
   async function flush() {
-    const batch = queue.splice(0, 20);
+    const batch = queue.splice(0, 6);
     if (queue.length) timer = setTimeout(flush, 10);
     if (!batch.length) return;
     const ids = Array.from(new Set(batch.map(b => b.id)));

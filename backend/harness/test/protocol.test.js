@@ -142,15 +142,15 @@ test('/__mock/reset: 空と seeded を作り直せる(状態は持ち越さな�
 test('画像1枚の最大サイズのリクエスト(base64約2MB)が本文上限に収まる', () => {
   const h = fresh();
   const p = h.mk('poster');
-  const body = jpeg(1.5 * 1024 * 1024);
-  const r = p.api('uploadPart', { mediaId: 'm_' + 'a'.repeat(12), kind: 'image', mime: 'image/jpeg', index: 0, total: 1, data: body.toString('base64'), thumb: jpeg(80 * 1024).toString('base64'), bytes: body.length });
+  const body = jpeg(2.8 * 1024 * 1024);
+  const r = p.api('uploadPart', { mediaId: 'm_' + 'a'.repeat(12), kind: 'image', mime: 'image/jpeg', index: 0, total: 1, data: body.toString('base64'), thumb: jpeg(220 * 1024).toString('base64'), bytes: body.length });
   assert.equal(r.ok, true);
 });
 
-test('動画1片の最大サイズのリクエスト(3MB + サムネ80KB)が本文上限に収まる', () => {
+test('動画1片の最大サイズのリクエスト(3MB + サムネ220KB)が本文上限に収まる', () => {
   const h = fresh();
   const p = h.mk('poster');
   const part = require('crypto').randomBytes(3 * 1024 * 1024);
-  const r = p.api('uploadPart', { mediaId: 'm_' + 'b'.repeat(12), kind: 'video', mime: 'video/webm', index: 0, total: 1, data: part.toString('base64'), thumb: jpeg(80 * 1024).toString('base64'), bytes: part.length });
+  const r = p.api('uploadPart', { mediaId: 'm_' + 'b'.repeat(12), kind: 'video', mime: 'video/webm', index: 0, total: 1, data: part.toString('base64'), thumb: jpeg(220 * 1024).toString('base64'), bytes: part.length });
   assert.equal(r.ok, true, JSON.stringify(r.error));
 });

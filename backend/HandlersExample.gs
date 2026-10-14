@@ -43,19 +43,19 @@ function handleUploadPart_(ctx, p) {
 
   var maxRaw = isImage ? LIMITS.IMAGE_MAX : LIMITS.VIDEO_PART_MAX;
   var maxB64 = isImage ? Math.ceil(LIMITS.IMAGE_MAX / 3) * 4 : LIMITS.VIDEO_PART_B64_MAX;
-  if (p.data.length > maxB64) fail_('TOO_LARGE', isImage ? '写真が大きすぎます(1.5MBまで)。' : '動画の1片が大きすぎます(3MBまで)。');
+  if (p.data.length > maxB64) fail_('TOO_LARGE', isImage ? '写真が大きすぎます(2.8MBまで)。' : '動画の1片が大きすぎます(3MBまで)。');
   if (!Util.isB64(p.data) || p.data.length === 0) fail_('VALIDATION_FAILED', 'data がbase64として正しくありません。', 'data');
   var raw = Util.b64RawLen(p.data);
-  if (raw > maxRaw) fail_('TOO_LARGE', isImage ? '写真が大きすぎます(1.5MBまで)。' : '動画の1片が大きすぎます(3MBまで)。');
+  if (raw > maxRaw) fail_('TOO_LARGE', isImage ? '写真が大きすぎます(2.8MBまで)。' : '動画の1片が大きすぎます(3MBまで)。');
   if (raw === 0) fail_('VALIDATION_FAILED', 'data が空です。', 'data');
   if (p.bytes !== raw) fail_('VALIDATION_FAILED', 'bytes がデータの大きさと合いません。', 'bytes');
   if (isImage && !isJpegB64_(p.data)) fail_('VALIDATION_FAILED', 'JPEG画像ではありません。', 'data');
 
   var thumbBytes = null;
   if (p.index === 0) {
-    if (p.thumb.length > Math.ceil(LIMITS.THUMB_MAX / 3) * 4) fail_('TOO_LARGE', 'サムネイルが大きすぎます(80KBまで)。');
+    if (p.thumb.length > Math.ceil(LIMITS.THUMB_MAX / 3) * 4) fail_('TOO_LARGE', 'サムネイルが大きすぎます(220KBまで)。');
     if (!Util.isB64(p.thumb) || p.thumb.length === 0) fail_('VALIDATION_FAILED', 'thumb がbase64として正しくありません。', 'thumb');
-    if (Util.b64RawLen(p.thumb) > LIMITS.THUMB_MAX) fail_('TOO_LARGE', 'サムネイルが大きすぎます(80KBまで)。');
+    if (Util.b64RawLen(p.thumb) > LIMITS.THUMB_MAX) fail_('TOO_LARGE', 'サムネイルが大きすぎます(220KBまで)。');
     if (!isJpegB64_(p.thumb)) fail_('VALIDATION_FAILED', 'サムネイルがJPEGではありません。', 'thumb');
     thumbBytes = p.thumb;
   }

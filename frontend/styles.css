@@ -222,3 +222,23 @@ details.more>div{padding-bottom:12px}
 .urow select{min-height:2.75rem;padding:0 10px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
 .hint .line{display:flex;gap:8px;margin-top:8px}
 .top-pending{display:inline-block;min-width:1.4rem;text-align:center;border-radius:999px;background:var(--bad-solid);color:#fff;font-size:.75rem;padding:0 6px;margin-left:6px}
+
+/* 写真への書き込み */
+.pv .ann-btn{position:absolute;left:4px;bottom:4px;min-height:2.75rem;padding:0 12px;border-radius:8px;border:0;background:rgba(0,0,0,.72);color:#fff;font:inherit;font-size:.8125rem;font-weight:700}
+.ann{position:fixed;inset:0;z-index:80;background:#111;color:#fff;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+.ann button{min-height:2.75rem;padding:0 12px;border-radius:8px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:.9375rem}
+.ann button[aria-pressed=true]{background:var(--accent);border-color:#fff;font-weight:700}
+.ann button:disabled{opacity:.4}
+.ann button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.ann .pri{background:var(--accent);border-color:#fff;font-weight:700}
+.ann-top{display:flex;gap:6px;padding:8px 10px;flex-wrap:wrap}
+.ann-top .pri{margin-left:auto}
+.ann-stage{flex:1;min-height:0;display:grid;place-items:center;padding:4px 8px;overflow:hidden}
+.ann-stage canvas{touch-action:none;background:#000;max-width:100%;max-height:100%;cursor:crosshair}
+.ann-hint{margin:0;padding:4px 12px;font-size:.8125rem;color:rgba(255,255,255,.8);text-align:center;min-height:1.6em}
+.ann-bar{display:grid;gap:6px;padding:6px 10px calc(10px + env(safe-area-inset-bottom,0px))}
+.ann-row{display:flex;gap:6px;flex-wrap:wrap}
+.ann-row[hidden]{display:none}
+.ann-row button{flex:1 1 auto}
+.ann .sw{flex:0 0 2.75rem;min-width:2.75rem;padding:0;background:var(--sw);border:3px solid rgba(255,255,255,.55)}
+.ann .sw[aria-pressed=true]{background:var(--sw);border-color:#fff;box-shadow:0 0 0 3px var(--accent)}

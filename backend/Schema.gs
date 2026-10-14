@@ -86,8 +86,8 @@ var ID_RE = {
 };
 
 var LIMITS = {
-  IMAGE_MAX: 1.5 * 1024 * 1024,        // 画像本体(生バイト)
-  THUMB_MAX: 80 * 1024,                // サムネ(生バイト)
+  IMAGE_MAX: 2.8 * 1024 * 1024,        // 画像本体(生バイト)
+  THUMB_MAX: 220 * 1024,               // サムネ(生バイト)
   VIDEO_PART_MAX: 3 * 1024 * 1024,     // 動画の1片(生バイト)
   VIDEO_PART_B64_MAX: 4200000,         // 動画の1片(base64文字数)
   VIDEO_TOTAL_MAX: 20 * 1024 * 1024,   // 動画全体(生バイト)

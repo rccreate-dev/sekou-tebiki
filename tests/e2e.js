@@ -52,6 +52,19 @@ const check = (n, c, d) => { console.log((c ? 'OK  ' : 'NG  ') + n + (c ? '' : '
     fs.writeFileSync('/tmp/t1.png', Buffer.from(png, 'base64'));
     await pg.setInputFiles('#sh-file', '/tmp/t1.png');
     await pg.waitForSelector('#sh-prev .pv img');
+    // 写真への書き込み(矢印とスタンプ→焼き込み→サムネも更新)
+    const sz0 = await pg.evaluate(() => S.sheet.media[0].blob.size);
+    await pg.click('[data-act=sh-ann]'); await pg.waitForSelector('#ann-cv');
+    const stroke = async (fx, fy, tx, ty) => { const b = await pg.locator('#ann-cv').boundingBox(); await pg.mouse.move(b.x + b.width * fx, b.y + b.height * fy); await pg.mouse.down(); await pg.mouse.move(b.x + b.width * tx, b.y + b.height * ty, { steps: 6 }); await pg.mouse.up(); };
+    await pg.click('[data-tool=arrow]'); await stroke(.1, .1, .5, .5);
+    await pg.click('[data-tool=blur]'); await stroke(.6, .6, .9, .9);
+    await pg.click('[data-tool=stamp]'); await pg.click('[data-stamp=NG]'); await stroke(.3, .7, .3, .7);
+    check('書き込みが3つ入る(触れただけの図形は捨てる)', await pg.evaluate(() => !document.querySelector('[data-a=undo]').disabled));
+    await pg.click('[data-a=undo]'); await pg.click('[data-a=done]');
+    await pg.waitForFunction(() => S.sheet && S.sheet.media[0].ops && !S.sheet.pending, null, { timeout: 15000 });
+    const ai = await pg.evaluate(() => ({ n: S.sheet.media[0].ops.length, size: S.sheet.media[0].blob.size, w: 0 }));
+    check('書き込み2つが写真に焼き込まれる', ai.n === 2 && ai.size !== sz0, JSON.stringify(ai));
+    check('「書込を直す」に変わる', (await pg.locator('.ann-btn').innerText()).includes('直す'));
     await pg.click('#sh-save');
     await pg.waitForSelector('article.ex', { timeout: 20000 });
     check('事例が登録され項目ページに出る', (await pg.locator('article.ex.bad').count()) === 1);

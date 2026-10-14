@@ -2,7 +2,7 @@
 /* ===== 事例の追加・編集シート(写真・動画は端末で整えてから、分割して送る) ===== */
 const IMG_OK = /^image\/(jpeg|png|webp|gif|heic|heif)$/i, IMG_EXT = /\.(jpe?g|png|webp|gif|heic|heif)$/i;
 const VID_EXT = /\.(mp4|m4v|mov|webm)$/i;
-const FULL_MAX = 1.5 * 1000 * 1000, THUMB_MAX = 80 * 1000;   // SPEC §5.3(余裕を持たせて10進で計算)
+const FULL_MAX = 2.8 * 1000 * 1000, THUMB_MAX = 220 * 1000;   // SPEC §5.3(余裕を持たせて10進で計算)
 
 const toBlob = (c, q) => new Promise(res => c.toBlob(res, 'image/jpeg', q));
 function blobToB64(b) {
@@ -21,14 +21,14 @@ function drawScaled(src, w, h, edge) {
   const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(src, 0, 0, c.width, c.height);
   return c;
 }
-/* 写真: 向きを直し、本体(長辺1600px・1.5MB以下)とサムネ(長辺480px・80KB以下)を作る */
+/* 写真: 向きを直し、本体(長辺2400px・2.8MB以下)とサムネ(長辺960px・220KB以下)を作る */
 async function makeImage(file) {
   let bmp;
   try { bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
   catch (e1) { try { bmp = await createImageBitmap(file); } catch (e2) { throw { code: 'decode_failed' }; } }
   try {
-    const full = await shrinkJpeg(drawScaled(bmp, bmp.width, bmp.height, 1600), FULL_MAX, [.85, .75, .65, .55, .45]);
-    const th = await shrinkJpeg(drawScaled(bmp, bmp.width, bmp.height, 480), THUMB_MAX, [.72, .6, .5, .4, .3]);
+    const full = await shrinkJpeg(drawScaled(bmp, bmp.width, bmp.height, 2400), FULL_MAX, [.9, .85, .78, .7, .6, .5]);
+    const th = await shrinkJpeg(drawScaled(bmp, bmp.width, bmp.height, 960), THUMB_MAX, [.82, .74, .66, .58, .5, .4, .3]);
     if (!full || !th || full.size > FULL_MAX || th.size > THUMB_MAX) throw { code: 'decode_failed' };
     return { full, thumb: th };
   } finally { if (bmp.close) bmp.close(); }
@@ -41,7 +41,7 @@ async function videoThumb(blob) {
     await new Promise((res, rej) => { v.onloadeddata = res; v.onerror = () => rej(); setTimeout(rej, 8000); v.src = url; });
     try { v.currentTime = Math.min(0.2, (v.duration || 1) / 2); await new Promise(res => { v.onseeked = res; setTimeout(res, 1500); }); } catch (e) {}
     if (!v.videoWidth) throw 0;
-    const t = await shrinkJpeg(drawScaled(v, v.videoWidth, v.videoHeight, 480), THUMB_MAX, [.72, .6, .5, .4, .3]);
+    const t = await shrinkJpeg(drawScaled(v, v.videoWidth, v.videoHeight, 960), THUMB_MAX, [.82, .74, .66, .58, .5, .4, .3]);
     if (t && t.size <= THUMB_MAX) return t;
     throw 0;
   } catch (e) {
@@ -90,7 +90,7 @@ function openSheet(exId) {
     '<label class="fl" for="sh-ref">管理表の番号</label><input class="field" id="sh-ref" maxlength="30" placeholder="例：重点管理 3-2" value="' + esc(v.refNo || '') + '">' +
     '</div></details>' +
     '<div class="fl">写真・動画（<span id="sh-cnt"></span>）</div>' +
-    '<p class="hint" style="margin:0 0 6px">顔や名前が写らないようにしてください。</p>' +
+    '<p class="hint" style="margin:0 0 6px">顔や名前が写らないようにしてください。撮った写真は「書込」で、矢印・囲み・ぼかし・スタンプを入れられます。</p>' +
     '<input class="sr file-in" type="file" id="sh-file" accept="image/*,video/*" multiple><label class="filebtn" for="sh-file" id="sh-fb">写真・動画を選ぶ／撮る</label>' +
     '<div class="prev" id="sh-prev"></div><p class="msg" id="sh-msg" role="status"></p>' +
     '<div id="sh-disc"></div>' +
@@ -109,7 +109,8 @@ function drawPrev() {
     const body = m.keep
       ? '<img data-mid="' + esc(m.id) + '" alt="登録済みの' + (m.type === 'video' ? '動画' : '写真') + ' ' + (i + 1) + '">' + (m.type === 'video' ? '<span class="vt">動画</span>' : '')
       : (m.type === 'video' ? '<img src="' + esc(m.turl) + '" alt="選んだ動画 ' + (i + 1) + '"><span class="vt">動画</span>' : '<img src="' + esc(m.turl) + '" alt="選んだ写真 ' + (i + 1) + '">');
-    return '<div class="pv">' + body + '<button class="rm" type="button" data-act="sh-rm" data-i="' + i + '" aria-label="' + (i + 1) + '点目を外す"><i>×</i></button></div>';
+    const ann = (!m.keep && m.type !== 'video') ? '<button class="ann-btn" type="button" data-act="sh-ann" data-i="' + i + '">' + (m.ops && m.ops.length ? '書込を直す' : '書込') + '</button>' : '';
+    return '<div class="pv">' + body + ann + '<button class="rm" type="button" data-act="sh-rm" data-i="' + i + '" aria-label="' + (i + 1) + '点目を外す"><i>×</i></button></div>';
   }).join('');
   Media.hydrate($('#sh-prev'));
 }
@@ -126,14 +127,14 @@ async function compressVideo(file, sh, name) {
     const dur = v.duration;
     if (!isFinite(dur) || dur <= 0) throw { code: 'decode_failed' };
     if (dur > VID_MAX_SEC) throw { code: 'video_long' };
-    const sc = Math.min(1, 960 / Math.max(v.videoWidth, v.videoHeight));
+    const sc = Math.min(1, 1280 / Math.max(v.videoWidth, v.videoHeight));
     const cv = document.createElement('canvas');
     cv.width = Math.max(2, Math.round(v.videoWidth * sc / 2) * 2); cv.height = Math.max(2, Math.round(v.videoHeight * sc / 2) * 2);
     const g = cv.getContext('2d');
     const mimes = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
     const mt = mimes.find(m => MediaRecorder.isTypeSupported(m));
     if (!mt) throw { code: 'too_large' };
-    const bps = Math.min(2500000, Math.floor(17 * 1048576 * 8 / dur));
+    const bps = Math.min(4500000, Math.floor(17 * 1048576 * 8 / dur));
     const rec = new MediaRecorder(cv.captureStream(24), { mimeType: mt, videoBitsPerSecond: bps });
     const chunks = []; rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
     const done = new Promise(res => { rec.onstop = res; });
@@ -277,6 +278,7 @@ function initSheet() {
     else if (a === 'sh-save') saveSheet();
     else if (a === 'sh-keep') { SH().askDiscard = false; $('#sh-disc').innerHTML = ''; }
     else if (a === 'sh-discard') closeSheet();
+    else if (a === 'sh-ann') annotateMedia(+t.dataset.i);
     else if (a === 'sh-rm') {
       const sh = SH(); if (sh.busy) return;
       const m = sh.media.splice(+t.dataset.i, 1)[0];
