@@ -7,7 +7,7 @@ const MAX_FILE = 20 * 1024 * 1024;       // 1ファイルの上限(動画の圧�
 const COMPRESS_OVER = 10 * 1024 * 1024;  // これを超える動画は端末内で小さくしてから送る
 const PART_BYTES = 2 * 1024 * 1024;      // 動画を分けて送る1片の大きさ(サーバー上限は3MB)
 const MAX_MEDIA = 6;
-const VERSION = 'v3.1.1 (2026-10-14)';
+const VERSION = 'v3.1.2 (2026-10-14)';
 const CFG = window.TEBIKI_CONFIG || {};
 // 確認タイミング: 工程別重点管理ポイント一覧の7工程に合わせる
 const TIMINGS = ['墨出し・準備', '型枠建込', '支保工設置', '締付金物・補強', '打設前最終確認', 'コン打設中監視', '養生・脱型'];

@@ -211,7 +211,13 @@ const ACT = {
   'user-reject': t => upd({ id: t.dataset.id, status: 'rejected' }, '却下しました'),
   backup, 'diag-run': runDiag, 'diag-copy': copyDiag,
   'hint-close': () => { Prefs.d.hintClosed = true; Prefs.save(); render(); },
-  'clear-cache': async () => { await Store.clearData(); location.reload(); },
+  // 端末の保存(写真など)に加えて、アプリ本体の保存も消す。古い画面のまま動かないときの立て直し用
+  'clear-cache': async () => {
+    await Store.clearData();
+    try { if (window.caches) for (const k of await caches.keys()) await caches.delete(k); } catch (e) { /* 無視 */ }
+    try { if (navigator.serviceWorker) for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); } catch (e) { /* 無視 */ }
+    location.reload();
+  },
   apply: applyNow,
   check: () => checkStatus(true),
   retry: async () => { S.gate = 'boot'; render(); await boot(); },
