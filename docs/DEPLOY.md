@@ -6,6 +6,7 @@
 3. 関数 `setupSecrets` → `setupSheets` → `setupTriggers` → `seedStructure` の順に1回ずつ実行(初回は権限の承認が出る)。
 4. 「デプロイ → 新しいデプロイ → ウェブアプリ」。実行ユーザー=自分、アクセス=全員。表示されたURL(`…/exec`)を控える。
 5. 設定シートの `appBaseUrl` にそのURLを入れる(メールの承認リンク用)。
+6. 設定シートに `notifyEmail`(利用申請メールの送り先)の行を足す。空だとメールは送られない(`Session.getEffectiveUser` は追加の権限が要るため使わない)。
 
 ## 2. アプリ側
 1. `frontend/config.js` の `API_URL` に、上の `…/exec` のURLを入れる。
