@@ -103,7 +103,7 @@
 | `apply` | `name: str(40) 必須`, `company: str(60)` | `{status}`。未登録なら行を追加して「申請中」+社長へメール。登録済みなら何もせず現在の `status`。鍵が違えば `UNAUTHENTICATED` |
 | `status` | なし | `{status:"none"|"pending"|"approved"|"rejected", role?, name?}` |
 
-メール(`mailEnabled`=TRUE かつ 6時間に20通まで): 宛先は `Session.getEffectiveUser().getEmail()`。件名「【施工手引き】利用申請: 氏名(会社名)」。本文に「承認する/却下する」リンク。リンクは `GET <exec>?action=decide&d=approve|reject&id=<dev>&sig=<HMAC>` で**確認ページのみ**表示し、ページのボタンで `action=commit` が決定する(メールの自動プレビューで勝手に決定されないため)。署名は `HMAC-SHA256(id|d, SECRET)`。`doGet` が対応するのは `decide` `commit` `ping` だけ。
+メール(`mailEnabled`=TRUE かつ 6時間に20通まで): 宛先は設定シートの `notifyEmail`(未設定なら送らない。`Session.getEffectiveUser` は userinfo.email 権限が要るため使わない)。件名「【施工手引き】利用申請: 氏名(会社名)」。本文に「承認する/却下する」リンク。リンクは `GET <exec>?action=decide&d=approve|reject&id=<dev>&sig=<HMAC>` で**確認ページのみ**表示し、ページのボタンで `action=commit` が決定する(メールの自動プレビューで勝手に決定されないため)。署名は `HMAC-SHA256(id|d, SECRET)`。`doGet` が対応するのは `decide` `commit` `ping` だけ。
 
 ### 5.2 参照(承認済み)
 | action | params | 応答 data |

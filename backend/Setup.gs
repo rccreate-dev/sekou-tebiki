@@ -91,6 +91,7 @@ function setupSheets() {
   props.setProperty('MEDIA_FOLDER_ID', media.getId());
 
   if (Repo.getSetting('mailEnabled', '') === '') Repo.setSetting('mailEnabled', 'TRUE');
+  if (Repo.getSetting('notifyEmail', '') === '') Repo.setSetting('notifyEmail', '');
   if (Repo.getSetting('appBaseUrl', '') === '') Repo.setSetting('appBaseUrl', DEFAULT_APP_BASE_URL);
   Repo.reset();
   Logger.log('setupSheets: 完了(シート ' + Object.keys(SHEET_DEFS).length + ' 枚・Driveフォルダ確認済み)');

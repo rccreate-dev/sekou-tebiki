@@ -55,6 +55,7 @@ function createHarness(opts) {
     const built = buildContext(h);
     h.ctx = built.ctx; h.state = built.state;
     h.ctx.setupSheets();
+    h.ctx.Repo.setSetting('notifyEmail', 'owner@example.com');
     if (o.variant === 'seeded') h.ctx.seedStructure();
     h.state.driveLog.length = 0;
     h.state.mails.length = 0;

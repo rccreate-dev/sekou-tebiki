@@ -152,8 +152,9 @@ function decideUrl_(action, d, id) {
 
 function notifyApplication_(user) {
   if (!mailEnabled_() || !mailBudgetOk_()) return;
-  var to = Session.getEffectiveUser().getEmail();
-  if (!to) return;
+  // 送り先は設定シートの notifyEmail。Session.getEffectiveUser は userinfo.email 権限が要るため使わない
+  var to = String(Repo.getSetting('notifyEmail', '') || '').trim();
+  if (!to) { console.warn('notifyEmail が未設定のため、申請メールを送りません'); return; }
   var ok = decideUrl_('decide', 'approve', user.id);
   var ng = decideUrl_('decide', 'reject', user.id);
   var who = user.name + (user.company ? '(' + user.company + ')' : '');

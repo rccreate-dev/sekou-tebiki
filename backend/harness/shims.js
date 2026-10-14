@@ -373,7 +373,7 @@ function createShims(state) {
   };
   const Session = {
     getScriptTimeZone: () => 'Asia/Tokyo',
-    getEffectiveUser: () => ({ getEmail: () => state.ownerEmail || 'owner@example.com' }),
+    getEffectiveUser: () => { throw new Error('Specified permissions are not sufficient to call Session.getEffectiveUser. Required permissions: https://www.googleapis.com/auth/userinfo.email'); },
     getActiveUser() { throw new Error('Session.getActiveUser は使用禁止(SPEC §1.3)'); },
   };
   const ScriptApp = {
