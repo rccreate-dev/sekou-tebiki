@@ -49,8 +49,8 @@ const check = (n, c, d) => { console.log((c ? 'OK  ' : 'NG  ') + n + (c ? '' : '
     await pg.click('label[for=k-b]');
     // 写真(canvas で生成)
     const png = await pg.evaluate(async () => { const c = document.createElement('canvas'); c.width = 1200; c.height = 800; const g = c.getContext('2d'); for (let i = 0; i < 60; i++) { g.fillStyle = 'hsl(' + i * 6 + ',70%,50%)'; g.fillRect(i * 20, (i * 37) % 700, 60, 90); } return c.toDataURL('image/png').split(',')[1]; });
-    fs.writeFileSync('/tmp/t1.png', Buffer.from(png, 'base64'));
-    await pg.setInputFiles('#sh-file', '/tmp/t1.png');
+    const T1 = path.join(require('os').tmpdir(), 't1.png'); fs.writeFileSync(T1, Buffer.from(png, 'base64'));
+    await pg.setInputFiles('#sh-file', T1);
     await pg.waitForSelector('#sh-prev .pv img');
     // 写真への書き込み(矢印とスタンプ→焼き込み→サムネも更新)
     const sz0 = await pg.evaluate(() => S.sheet.media[0].blob.size);

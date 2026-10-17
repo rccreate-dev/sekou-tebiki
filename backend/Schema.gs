@@ -97,7 +97,10 @@ var LIMITS = {
   ORPHAN_AGE_MS: 24 * 3600 * 1000,
   LAST_USED_INTERVAL_MS: 10 * 60 * 1000,
   MAIL_WINDOW_MS: 6 * 3600 * 1000,
-  MAIL_MAX: 20
+  MAIL_MAX: 20,
+  PENDING_MAX: 50,                     // 「申請中」がこの件数あれば新しい申請を受けない(連打対策)
+  APPLY_WINDOW_MS: 3600 * 1000,
+  APPLY_MAX: 30                        // 新しい申請は全体で1時間にこの件数まで
 };
 
 /** 初期データ(SPEC §7)。順は10刻み(グループは全体で、項目はグループ内で 10,20,30…) */

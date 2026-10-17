@@ -6,6 +6,10 @@
 
 function handleApply_(ctx, p) {
   if (ctx.user) return { status: ctx.status || 'pending' }; // 登録済み: 何もせず現在の状態(鍵は認証済み)
+  // 連打対策(apply は未認証で呼べるため)。IP は分からないので全体で数える
+  var pending = Repo.all('users').filter(function (u) { return u.status === STATUS_TO_JA.pending; }).length;
+  if (pending >= LIMITS.PENDING_MAX) fail_('BUSY', '申請が多くなっています。管理者に連絡してください。');
+  if (!windowTake_('applyWin', LIMITS.APPLY_WINDOW_MS, LIMITS.APPLY_MAX)) fail_('BUSY', '申請が多くなっています。しばらく待ってからもう一度お試しください。');
   var row = {
     id: ctx.dev, appliedAt: Util.nowMs(), name: p.name, company: p.company || '',
     role: ROLE_TO_JA.viewer, status: STATUS_TO_JA.pending, decidedAt: 0, keyHash: Auth.keyHash(ctx.key), lastUsedAt: 0
@@ -128,22 +132,30 @@ function mailEnabled_() {
   return v !== 'FALSE' && v !== '0' && v !== 'NO';
 }
 
-/** 6時間に20通まで(固定の窓)。窓の状態は CacheService に置く(消えたら数え直し) */
-function mailBudgetOk_() {
+/**
+ * 固定の窓で回数を数える。max 未満なら1つ数えて true、使い切っていれば false。
+ * 窓の状態は CacheService に置く(消えたら数え直し)。呼び出しはロック内か、ずれても困らない所で使う。
+ */
+function windowTake_(key, windowMs, max) {
   var cache = CacheService.getScriptCache();
   var now = Util.nowMs();
   var st = { s: now, n: 0 };
   try {
-    var raw = cache.get('mailWin');
+    var raw = cache.get(key);
     if (raw) {
       var o = JSON.parse(raw);
-      if (o && typeof o.s === 'number' && now - o.s < LIMITS.MAIL_WINDOW_MS) st = o;
+      if (o && typeof o.s === 'number' && now - o.s < windowMs) st = o;
     }
   } catch (e) { /* 数え直し */ }
-  if (st.n >= LIMITS.MAIL_MAX) return false;
+  if (st.n >= max) return false;
   st.n++;
-  try { cache.put('mailWin', JSON.stringify(st), 21600); } catch (e2) { /* 無視 */ }
+  try { cache.put(key, JSON.stringify(st), Math.min(21600, Math.ceil(windowMs / 1000))); } catch (e2) { /* 無視 */ }
   return true;
+}
+
+/** 6時間に20通まで */
+function mailBudgetOk_() {
+  return windowTake_('mailWin', LIMITS.MAIL_WINDOW_MS, LIMITS.MAIL_MAX);
 }
 
 function decideUrl_(action, d, id) {

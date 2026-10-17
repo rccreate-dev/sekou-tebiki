@@ -1,5 +1,5 @@
 # 引き継ぎメモ(次に作業する人・Claude Code 向け)
-最終更新 2026-10-15 / 版 3.1.5。作業前に **CLAUDE.md → SPEC.md → このメモ → docs/DEPLOY.md** の順に読む。
+最終更新 2026-10-17 / 版 3.1.5(画面の版は変更なし)。作業前に **CLAUDE.md → SPEC.md → このメモ → docs/DEPLOY.md** の順に読む。
 このリポジトリは**公開**。GoogleのURL・ID・メールアドレス・鍵は書かない(下の「リポジトリに無いもの」参照)。
 
 ## 1. 何のアプリか
@@ -37,7 +37,7 @@ RCCREATE(型枠工事)の社内アプリ「施工手引き」。グループ →
 ### テスト(完了前に必ず)
 ```
 node --check frontend/js/*.js frontend/sw.js   # 各ファイル
-node --test backend/harness/test                # 98件
+node --test backend/harness/test                # 100件
 NODE_PATH=$(npm root -g) node tests/e2e.js      # ブラウザ(Playwright/Chromium)ALL PASS
 ```
 - `backend/harness` は Apps Script を Node で再現した試験用サーバー。本番の Google ではない。
@@ -62,7 +62,7 @@ NODE_PATH=$(npm root -g) node tests/e2e.js      # ブラウザ(Playwright/Chromi
 
 ## 6. 未対応・やり残し(優先順)
 ### 独立レビュー(2026-10-14)で出て、まだ直していないもの — すべて backend(貼り直しが必要)
-1. **M2 申請の連打**: `apply` は未認証で誰でも呼べ、行が増える・メール枠(6時間20通)を使い切れる。→ 申請中の件数に上限(例50)か CacheService で回数制限。`HandlersUser.gs`、`Code.gs`。
+1. ~~**M2 申請の連打**~~ → **直した(2026-10-17、本番に反映済み = Apps Script バージョン4)**。新しい申請は「申請中」50件以上、または全体で1時間30件を超えると `BUSY`(`LIMITS.PENDING_MAX` / `APPLY_MAX`、`HandlersUser.gs` の `windowTake_`)。IP が分からないので全体での制限。いたずらが続く間は本物の申請も止まる(管理者はシートで承認できる)。
 2. **M5 承認メールのリンク**: `decide` と `commit` が同じ署名で、リンクを書き換えると確認ページを飛ばして承認できる。署名に期限がない。→ 署名を `HMAC(action|d|id|期限)` にして分ける。`HandlersUser.gs` 付近。
 3. **L2 追加の再送で重複**: グループ・項目の追加が冪等でない(`HandlersStructure.gs`)。削除の再送は NOT_FOUND になる。
 4. **L3 英語の項目名が画面に出る**: `VALIDATION_FAILED` のサーバーメッセージをそのまま表示している。クライアントで定型の日本語にする。

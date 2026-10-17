@@ -1,7 +1,7 @@
 # SPEC — 施工手引き(RCCREATE) API契約・データ構造
 
 この文書が、バックエンド(backend/ = Google Apps Script)とフロント(frontend/ = PWA)の**唯一の契約**。食い違いを見つけたら直さず報告する。
-最終更新: 2026-10-14
+最終更新: 2026-10-17
 
 ## 0. 全体像
 
@@ -100,7 +100,7 @@
 | action | params | 応答 data |
 |---|---|---|
 | `ping` | なし(dev/key不要) | `{version:1}` |
-| `apply` | `name: str(40) 必須`, `company: str(60)` | `{status}`。未登録なら行を追加して「申請中」+社長へメール。登録済みなら何もせず現在の `status`。鍵が違えば `UNAUTHENTICATED` |
+| `apply` | `name: str(40) 必須`, `company: str(60)` | `{status}`。未登録なら行を追加して「申請中」+社長へメール。登録済みなら何もせず現在の `status`。鍵が違えば `UNAUTHENTICATED`。連打対策(未登録の新しい申請だけに効く): 「申請中」が50件以上、または新しい申請が全体で1時間に30件を超えると `BUSY`(行もメールも増やさない) |
 | `status` | なし | `{status:"none"|"pending"|"approved"|"rejected", role?, name?}` |
 
 メール(`mailEnabled`=TRUE かつ 6時間に20通まで): 宛先は設定シートの `notifyEmail`(未設定なら送らない。`Session.getEffectiveUser` は userinfo.email 権限が要るため使わない)。件名「【施工手引き】利用申請: 氏名(会社名)」。本文に「承認する/却下する」リンク。リンクは `GET <exec>?action=decide&d=approve|reject&id=<dev>&sig=<HMAC>` で**確認ページのみ**表示し、ページのボタンで `action=commit` が決定する(メールの自動プレビューで勝手に決定されないため)。署名は `HMAC-SHA256(id|d, SECRET)`。`doGet` が対応するのは `decide` `commit` `ping` だけ。

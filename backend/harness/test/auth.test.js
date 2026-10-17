@@ -185,6 +185,35 @@ test('メール: mailEnabled=FALSE で送らない / 6時間に20通まで', () 
   assert.equal(h.control('mails').data.mails.length, 21);
 });
 
+test('apply の連打対策: 新しい申請は1時間に30件まで(登録済みの再申請は数えない)', () => {
+  const h = fresh();
+  const first = newDevice();
+  assert.equal(h.call('apply', { name: 'U0' }, first).ok, true);
+  for (let i = 1; i < 30; i++) assert.equal(h.call('apply', { name: 'U' + i }, newDevice()).ok, true);
+  // 登録済みの端末の再申請は通る(行もメールも増えない)
+  assert.deepEqual(h.call('apply', { name: 'U0' }, first).data, { status: 'pending' });
+  const before = h.sheet('users').length;
+  const r = h.call('apply', { name: 'over' }, newDevice());
+  assert.equal(r.ok, false);
+  assert.equal(r.error.code, 'BUSY');
+  assert.equal(h.sheet('users').length, before, '断ったときは行を増やさない');
+  h.control('clock', { advanceHours: 1.1 });
+  assert.equal(h.call('apply', { name: 'later' }, newDevice()).ok, true);
+});
+
+test('apply の連打対策: 申請中が50件あれば新しい申請を受けない', () => {
+  const h = fresh();
+  for (let i = 0; i < 49; i++) h.mk('viewer', { name: 'P' + i, status: 'pending' });
+  h.mk('viewer', { name: '承認済み' }); // 承認済み・却下は数えない
+  h.mk('viewer', { name: '却下', status: 'rejected' });
+  assert.equal(h.call('apply', { name: '50件目' }, newDevice()).ok, true);
+  const r = h.call('apply', { name: '51件目' }, newDevice());
+  assert.equal(r.ok, false);
+  assert.equal(r.error.code, 'BUSY');
+  assert.match(r.error.message, /管理者/);
+  assert.equal(h.control('mails').data.mails.length, 1, '断った申請はメールを送らない');
+});
+
 test('メール本文の氏名はHTMLエスケープされる', () => {
   const h = fresh();
   h.call('apply', { name: '<b>x</b>', company: 'A&B' }, newDevice());

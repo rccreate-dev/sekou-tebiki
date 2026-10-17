@@ -7,3 +7,4 @@ node_modules/
 *.mov
 .env
 .clasp.json
+paste/
